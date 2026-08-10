@@ -20,7 +20,7 @@ chosen, *why* a workaround exists, or *why* a non-obvious value is used.
 
 ## Log Format
 
-This project uses Git commits as a log. Commit titles use *conventional
+This project uses Git commits as a log. Commit summaries use *conventional
 commits*. Commit descriptions should describe the following:
 
 ```markdown
