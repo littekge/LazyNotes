@@ -53,7 +53,8 @@ func buildTreeView() *tview.TreeView {
 			panic(err)
 		}
 		for _, file := range files {
-			node := tview.NewTreeNode(file.Name())
+			node := tview.NewTreeNode(file.Name()).
+				SetSelectable(true)
 			target.AddChild(node)
 			if file.IsDir() {
 				addNodes(node, filepath.Join(path, file.Name()))
@@ -64,7 +65,8 @@ func buildTreeView() *tview.TreeView {
 	// path is hardcoded for now, dynamic configuration will be added in a later version
 	addNodes(root, "./test_notes_dir")
 	tv := tview.NewTreeView().
-		SetRoot(root)
+		SetRoot(root).
+		SetCurrentNode(root)
 	tv.SetBorder(true)
 	tv.SetFocusFunc(func() { tv.SetBorderStyle(LazyNotesFocusStyle()) })
 	tv.SetBlurFunc(func() { tv.SetBorderStyle(LazyNotesBlurStyle()) })
