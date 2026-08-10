@@ -20,19 +20,18 @@ chosen, *why* a workaround exists, or *why* a non-obvious value is used.
 
 ## Log Format
 
-When appending to logs, use this format:
+This project uses Git commits as a log. Commit titles use *conventional
+commits*. Commit descriptions should describe the following:
 
 ```markdown
-## YYYY-MM-DD — Short Title
-
 - What was done (bullet points)
 - Files created or modified
 - Tests added or updated
 - Any issues encountered
 ```
 
-> This project uses Git commits as a log. All commit descriptions should be
-> formatted in this manner. Commit titles use *conventional commits*.
+> Git commits automatically track the date and time of the commit, so manual
+> time tracking is not needed and should not be included in commit messages.
 
 ## Versioning
 
