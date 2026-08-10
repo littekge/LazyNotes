@@ -27,6 +27,7 @@ func setDrawVars() {
 	tview.Borders.BottomRightFocus = tview.BoxDrawingsLightArcUpAndLeft
 }
 
+// Builds a basic box (unused function)
 func buildBox() *tview.Box {
 	box := tview.NewBox().
 		SetBorder(true).
@@ -36,11 +37,12 @@ func buildBox() *tview.Box {
 	return box
 }
 
-func buildNoteBox() *tview.TextView {
+// Builds the note viewing pane.
+func buildNoteView() *tview.TextView {
 	tv := tview.NewTextView().
 		SetDynamicColors(true).
 		SetRegions(true).
-		SetText("test text")
+		SetText("Notes appear here...")
 	tv.SetBorder(true)
 	tv.SetFocusFunc(func() { tv.SetBorderStyle(LazyNotesFocusStyle()) })
 	tv.SetBlurFunc(func() { tv.SetBorderStyle(LazyNotesBlurStyle()) })
@@ -49,9 +51,11 @@ func buildNoteBox() *tview.TextView {
 
 func BuildApp() {
 	setDrawVars()
-	box := buildNoteBox()
+	// box := buildNoteView()
 	app = tview.NewApplication()
-	if err := app.SetRoot(box, true).Run(); err != nil {
+	mainContainer := tview.NewFlex().
+		AddItem(buildNoteView(), 0, 1, false)
+	if err := app.SetRoot(mainContainer, true).Run(); err != nil {
 		panic(err)
 	}
 }
