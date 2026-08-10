@@ -2,6 +2,9 @@
 package ui
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/rivo/tview"
 )
 
@@ -27,16 +30,6 @@ func setDrawVars() {
 	tview.Borders.BottomRightFocus = tview.BoxDrawingsLightArcUpAndLeft
 }
 
-// Builds a basic box (unused function)
-func buildBox() *tview.Box {
-	box := tview.NewBox().
-		SetBorder(true).
-		SetTitle("Note")
-	box.SetFocusFunc(func() { box.SetBorderStyle(LazyNotesFocusStyle()) })
-	box.SetBlurFunc(func() { box.SetBorderStyle(LazyNotesBlurStyle()) })
-	return box
-}
-
 // Builds the note viewing pane.
 func buildNoteView() *tview.TextView {
 	tv := tview.NewTextView().
@@ -49,12 +42,41 @@ func buildNoteView() *tview.TextView {
 	return tv
 }
 
+func buildTreeView() *tview.TreeView {
+	root := tview.NewTreeNode("Notes")
+
+	// recursive helper function to build the node tree
+	var addNodes func(*tview.TreeNode, string)
+	addNodes = func(target *tview.TreeNode, path string) {
+		files, err := os.ReadDir(path)
+		if err != nil {
+			panic(err)
+		}
+		for _, file := range files {
+			node := tview.NewTreeNode(file.Name())
+			target.AddChild(node)
+			if file.IsDir() {
+				addNodes(node, filepath.Join(path, file.Name()))
+			}
+		}
+	}
+
+	// path is hardcoded for now, dynamic configuration will be added in a later version
+	addNodes(root, "./test_notes_dir")
+	tv := tview.NewTreeView().
+		SetRoot(root)
+	tv.SetBorder(true)
+	tv.SetFocusFunc(func() { tv.SetBorderStyle(LazyNotesFocusStyle()) })
+	tv.SetBlurFunc(func() { tv.SetBorderStyle(LazyNotesBlurStyle()) })
+	return tv
+}
+
 func BuildApp() {
 	setDrawVars()
-	// box := buildNoteView()
 	app = tview.NewApplication()
 	mainContainer := tview.NewFlex().
-		AddItem(buildNoteView(), 0, 1, false)
+		AddItem(buildTreeView(), 0, 1, true).
+		AddItem(buildNoteView(), 0, 2, false)
 	if err := app.SetRoot(mainContainer, true).Run(); err != nil {
 		panic(err)
 	}
