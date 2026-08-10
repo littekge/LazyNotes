@@ -5,10 +5,15 @@ import (
 	"os"
 	"path/filepath"
 
+	mdparse "github.com/littekge/LazyNotes/internal/parser"
 	"github.com/rivo/tview"
 )
 
-var app *tview.Application
+var (
+	app      *tview.Application
+	treeView *tview.TreeView
+	noteView *tview.TextView
+)
 
 // sets the tview variables that determine how the UI is drawn.
 func setDrawVars() {
@@ -53,11 +58,22 @@ func buildTreeView() *tview.TreeView {
 			panic(err)
 		}
 		for _, file := range files {
+			fileString := filepath.Join(path, file.Name())
 			node := tview.NewTreeNode(file.Name()).
-				SetSelectable(true)
+				SetSelectable(true).
+				SetReference(fileString)
 			target.AddChild(node)
 			if file.IsDir() {
-				addNodes(node, filepath.Join(path, file.Name()))
+				addNodes(node, fileString)
+			} else {
+				node.SetSelectedFunc(func() {
+					text, err := mdparse.ParseText(node.GetReference().(string))
+					if err != nil {
+						noteView.SetText(err.Error())
+					} else {
+						noteView.SetText(text)
+					}
+				})
 			}
 		}
 	}
@@ -76,9 +92,11 @@ func buildTreeView() *tview.TreeView {
 func BuildApp() {
 	setDrawVars()
 	app = tview.NewApplication()
+	treeView = buildTreeView()
+	noteView = buildNoteView()
 	mainContainer := tview.NewFlex().
-		AddItem(buildTreeView(), 0, 1, true).
-		AddItem(buildNoteView(), 0, 2, false)
+		AddItem(treeView, 0, 1, true).
+		AddItem(noteView, 0, 2, false)
 	if err := app.SetRoot(mainContainer, true).Run(); err != nil {
 		panic(err)
 	}

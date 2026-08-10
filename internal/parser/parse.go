@@ -1,5 +1,5 @@
-// Package parser reads from a markdown file (.md) and formats the contents of the file in accordance to the tview text format.
-package parser
+// Package mdparse reads from a markdown file (.md) and formats the contents of the file in accordance to the tview text format.
+package mdparse
 
 import (
 	"errors"
