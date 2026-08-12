@@ -15,35 +15,13 @@ var (
 	noteView *tview.TextView
 )
 
-// sets the tview variables that determine how the UI is drawn.
-func setDrawVars() {
-	// set unfocused borders
-	tview.Borders.Horizontal = tview.BoxDrawingsLightHorizontal
-	tview.Borders.Vertical = tview.BoxDrawingsLightVertical
-	tview.Borders.TopLeft = tview.BoxDrawingsLightArcDownAndRight
-	tview.Borders.TopRight = tview.BoxDrawingsLightArcDownAndLeft
-	tview.Borders.BottomLeft = tview.BoxDrawingsLightArcUpAndRight
-	tview.Borders.BottomRight = tview.BoxDrawingsLightArcUpAndLeft
-	// set focused borders
-	// focused borders are intentionally the same as unfocused borders, elements
-	// use SetFocusFunc change the color when they are focused.
-	tview.Borders.HorizontalFocus = tview.BoxDrawingsLightHorizontal
-	tview.Borders.VerticalFocus = tview.BoxDrawingsLightVertical
-	tview.Borders.TopLeftFocus = tview.BoxDrawingsLightArcDownAndRight
-	tview.Borders.TopRightFocus = tview.BoxDrawingsLightArcDownAndLeft
-	tview.Borders.BottomLeftFocus = tview.BoxDrawingsLightArcUpAndRight
-	tview.Borders.BottomRightFocus = tview.BoxDrawingsLightArcUpAndLeft
-}
-
 // Builds the note viewing pane.
 func buildNoteView() *tview.TextView {
 	tv := tview.NewTextView().
 		SetDynamicColors(true).
 		SetRegions(true).
 		SetText("Notes appear here...")
-	tv.SetBorder(true)
-	tv.SetFocusFunc(func() { tv.SetBorderStyle(LazyNotesFocusStyle()) })
-	tv.SetBlurFunc(func() { tv.SetBorderStyle(LazyNotesBlurStyle()) })
+	Decorate(tv.Box, "Detail")
 	return tv
 }
 
@@ -89,10 +67,7 @@ func buildTreeView() *tview.TreeView {
 			noteView.SetText(mdtext)
 		}
 	})
-
-	tv.SetBorder(true)
-	tv.SetFocusFunc(func() { tv.SetBorderStyle(LazyNotesFocusStyle()) })
-	tv.SetBlurFunc(func() { tv.SetBorderStyle(LazyNotesBlurStyle()) })
+	Decorate(tv.Box, "Notes")
 	return tv
 }
 
