@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	mdparse "github.com/littekge/LazyNotes/internal/parser"
+	"github.com/littekge/LazyNotes/internal/mdparse"
 	"github.com/rivo/tview"
 )
 
@@ -65,15 +65,6 @@ func buildTreeView() *tview.TreeView {
 			target.AddChild(node)
 			if file.IsDir() {
 				addNodes(node, fileString)
-			} else {
-				node.SetSelectedFunc(func() {
-					text, err := mdparse.ParseText(node.GetReference().(string))
-					if err != nil {
-						noteView.SetText(err.Error())
-					} else {
-						noteView.SetText(text)
-					}
-				})
 			}
 		}
 	}
@@ -83,6 +74,22 @@ func buildTreeView() *tview.TreeView {
 	tv := tview.NewTreeView().
 		SetRoot(root).
 		SetCurrentNode(root)
+
+	// displays text of file on change
+	tv.SetChangedFunc(func(node *tview.TreeNode) {
+		filePath, ok := node.GetReference().(string)
+		if !ok {
+			noteView.SetText("Notes appear here...")
+			return
+		}
+		mdtext, err := mdparse.ParseText(filePath)
+		if err != nil {
+			noteView.SetText(err.Error())
+		} else {
+			noteView.SetText(mdtext)
+		}
+	})
+
 	tv.SetBorder(true)
 	tv.SetFocusFunc(func() { tv.SetBorderStyle(LazyNotesFocusStyle()) })
 	tv.SetBlurFunc(func() { tv.SetBorderStyle(LazyNotesBlurStyle()) })
