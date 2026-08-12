@@ -30,20 +30,20 @@ func setDrawVars() {
 	tview.Borders.BottomRightFocus = tview.BoxDrawingsLightArcUpAndLeft
 }
 
-func LazyNotesBlurStyle() tcell.Style {
+func lazyNotesBlurStyle() tcell.Style {
 	return tcell.StyleDefault.
 		Foreground(blurBorderColor)
 }
 
-func LazyNotesFocusStyle() tcell.Style {
+func lazyNotesFocusStyle() tcell.Style {
 	return tcell.StyleDefault.
 		Foreground(focusBorderColor)
 }
 
-func Decorate(elem *tview.Box, title string) {
+func decorate(elem *tview.Box, title string) {
 	elem.SetBorder(true)
 	elem.SetTitle(" " + title + " ")
-	elem.SetBorderStyle(LazyNotesBlurStyle())
-	elem.SetFocusFunc(func() { elem.SetBorderStyle(LazyNotesFocusStyle()) })
-	elem.SetBlurFunc(func() { elem.SetBorderStyle(LazyNotesBlurStyle()) })
+	elem.SetBorderStyle(lazyNotesBlurStyle())
+	elem.SetFocusFunc(func() { elem.SetBorderStyle(lazyNotesFocusStyle()) })
+	elem.SetBlurFunc(func() { elem.SetBorderStyle(lazyNotesBlurStyle()) })
 }

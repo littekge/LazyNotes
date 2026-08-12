@@ -21,7 +21,7 @@ func buildNoteView() *tview.TextView {
 		SetDynamicColors(true).
 		SetRegions(true).
 		SetText("Notes appear here...")
-	Decorate(tv.Box, "Detail")
+	decorate(tv.Box, "Detail")
 	return tv
 }
 
@@ -67,7 +67,7 @@ func buildTreeView() *tview.TreeView {
 			noteView.SetText(mdtext)
 		}
 	})
-	Decorate(tv.Box, "Notes")
+	decorate(tv.Box, "Notes")
 	return tv
 }
 
