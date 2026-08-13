@@ -5,7 +5,18 @@ effectively a vim/neovim wrapper that allows for navigation and editing of notes
 in a directory. Notes are formatted in markdown (stored as `.md` files) and may
 be grouped by folder (no recursive folders).
 
-## Comment Rules
+## Architecture
+
+This project uses the [standard Golang project
+structure](https://github.com/golang-standards/project-layout). Directories not
+covered by the standard layout are as follows:
+
+- `./example_notes/` -> an example of the target notes directory that *LazyNotes*
+  aims to work with.
+
+## Coding Practices
+
+### Comment Rules
 
 Follow three rules for comments:
 
