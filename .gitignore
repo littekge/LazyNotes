@@ -31,5 +31,6 @@ go.work.sum
 # .idea/
 # .vscode/
 
-# Bin ignore
-/lazynotes
+# ignore build artifacts 
+/bin/
+/dist/

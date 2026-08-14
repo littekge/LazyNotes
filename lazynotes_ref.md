@@ -12,7 +12,20 @@ structure](https://github.com/golang-standards/project-layout). Directories not
 covered by the standard layout are as follows:
 
 - `./example_notes/` -> an example of the target notes directory that *LazyNotes*
-  aims to work with.
+  aims to work with
+- `./bin/` -> build location of native development binary
+- `./dist/` -> build location of release binaries and generated checksum
+
+## Build System
+
+This project uses *Makefiles* as a build system. Most build, test, and
+run tasks are automated by a top-level `Makefile`. The Makefile is divided into
+sections:
+
+- `DEV` -> development targets (quickly build/run/test)
+- `CHORES` -> miscellaneous targets (remove build artifacts, clean up
+  dependencies, etc.)
+- `RELEASE` -> full release targets including checksums
 
 ## Coding Practices
 
@@ -29,7 +42,9 @@ to show how things work. Don't write comments that restate the code.
 behind a decision isn't obvious from the code. Explain *why* this approach was
 chosen, *why* a workaround exists, or *why* a non-obvious value is used.
 
-## Log Format
+## Version Control
+
+### Log Format
 
 This project uses Git commits as a log. Commit summaries use *conventional
 commits*. Commit descriptions should describe the following:
@@ -44,7 +59,7 @@ commits*. Commit descriptions should describe the following:
 > Git commits automatically track the date and time of the commit, so manual
 > time tracking is not needed and should not be included in commit messages.
 
-## Versioning
+### Versioning Convention
 
 The project is versioned via the `Major.Minor.Patch` convention formatted as `vX.Y.Z`:
 
