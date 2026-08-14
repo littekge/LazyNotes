@@ -48,7 +48,7 @@ func buildTreeView() *tview.TreeView {
 	}
 
 	// path is hardcoded for now, dynamic configuration will be added in a later version
-	addNodes(root, "./test_notes_dir")
+	addNodes(root, "./example_notes")
 	tv := tview.NewTreeView().
 		SetRoot(root).
 		SetCurrentNode(root)
