@@ -1,0 +1,32 @@
+name: Release
+
+# run on publish
+on:
+ release:
+   types: [published]
+
+# needs write permissions
+permissions: 
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with: 
+          go-version-file: go.mod
+          
+      - name: Build release binaries
+        run: make release
+
+      - name: Attach binaries to release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            dist/*
+            
+        
