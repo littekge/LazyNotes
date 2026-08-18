@@ -2,9 +2,13 @@
 package mdparse
 
 import (
+	"bytes"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/yuin/goldmark"
 )
 
 func ParseText(path string) (string, error) {
@@ -20,4 +24,12 @@ func ParseText(path string) (string, error) {
 		panic(err)
 	}
 	return string(bytes), nil
+}
+
+func MParseText(source io.Writer) (string, error) {
+	var buf bytes.Buffer
+	if err := goldmark.Convert(source, &buf); err != nil {
+		panic(err)
+	}
+	return "", nil
 }
