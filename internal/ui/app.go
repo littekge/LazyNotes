@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/littekge/LazyNotes/internal/mdparse"
+	"github.com/littekge/LazyNotes/internal/markdown"
 	"github.com/rivo/tview"
 )
 
@@ -60,7 +60,7 @@ func buildTreeView() *tview.TreeView {
 			noteView.SetText("Notes appear here...")
 			return
 		}
-		mdtext, err := mdparse.ParseText(filePath)
+		mdtext, err := markdown.RenderText(filePath)
 		if err != nil {
 			noteView.SetText(err.Error())
 		} else {

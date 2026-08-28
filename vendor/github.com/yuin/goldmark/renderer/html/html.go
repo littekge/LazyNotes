@@ -34,7 +34,7 @@ func NewConfig() Config {
 }
 
 // SetOption implements renderer.NodeRenderer.SetOption.
-func (c *Config) SetOption(name renderer.OptionName, value any) {
+func (c *Config) SetOption(name renderer.OptionName, value interface{}) {
 	switch name {
 	case optHardWraps:
 		c.HardWraps = value.(bool)
@@ -273,10 +273,6 @@ func (r *Renderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 	reg.Register(ast.KindParagraph, r.renderParagraph)
 	reg.Register(ast.KindTextBlock, r.renderTextBlock)
 	reg.Register(ast.KindThematicBreak, r.renderThematicBreak)
-	reg.Register(ast.KindLinkReferenceDefinition, func(
-		_ util.BufWriter, _ []byte, _ ast.Node, _ bool) (ast.WalkStatus, error) {
-		return ast.WalkSkipChildren, nil
-	})
 
 	// inlines
 
@@ -292,7 +288,7 @@ func (r *Renderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 
 func (r *Renderer) writeLines(w util.BufWriter, source []byte, n ast.Node) {
 	l := n.Lines().Len()
-	for i := range l {
+	for i := 0; i < l; i++ {
 		line := n.Lines().At(i)
 		r.Writer.RawWrite(w, line.Value(source))
 	}
@@ -382,7 +378,7 @@ func (r *Renderer) renderHTMLBlock(
 	if entering {
 		if r.Unsafe {
 			l := n.Lines().Len()
-			for i := range l {
+			for i := 0; i < l; i++ {
 				line := n.Lines().At(i)
 				r.Writer.SecureWrite(w, line.Value(source))
 			}
@@ -501,7 +497,7 @@ func (r *Renderer) renderThematicBreak(
 }
 
 // LinkAttributeFilter defines attribute names which link elements can have.
-var LinkAttributeFilter = GlobalAttributeFilter.ExtendString(`download,href,lang,media,ping,referrerpolicy,rel,shape,target`) // nolint:lll
+var LinkAttributeFilter = GlobalAttributeFilter.ExtendString(`download,hreflang,media,ping,referrerpolicy,rel,shape,target`) // nolint:lll
 
 func (r *Renderer) renderAutoLink(
 	w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
@@ -510,14 +506,12 @@ func (r *Renderer) renderAutoLink(
 		return ast.WalkContinue, nil
 	}
 	_, _ = w.WriteString(`<a href="`)
-	url := util.URLEscape(n.URL(source), false)
+	url := n.URL(source)
 	label := n.Label(source)
 	if n.AutoLinkType == ast.AutoLinkEmail && !bytes.HasPrefix(bytes.ToLower(url), []byte("mailto:")) {
 		_, _ = w.WriteString("mailto:")
 	}
-	if r.Unsafe || !IsDangerousURL(url) {
-		_, _ = w.Write(util.EscapeHTML(url))
-	}
+	_, _ = w.Write(util.EscapeHTML(util.URLEscape(url, false)))
 	if n.Attributes() != nil {
 		_ = w.WriteByte('"')
 		RenderAttributes(w, n, LinkAttributeFilter)
@@ -587,9 +581,8 @@ func (r *Renderer) renderLink(w util.BufWriter, source []byte, node ast.Node, en
 	n := node.(*ast.Link)
 	if entering {
 		_, _ = w.WriteString("<a href=\"")
-		dest := util.URLEscape(n.Destination, true)
-		if r.Unsafe || !IsDangerousURL(dest) {
-			_, _ = w.Write(util.EscapeHTML(dest))
+		if r.Unsafe || !IsDangerousURL(n.Destination) {
+			_, _ = w.Write(util.EscapeHTML(util.URLEscape(n.Destination, true)))
 		}
 		_ = w.WriteByte('"')
 		if n.Title != nil {
@@ -616,9 +609,8 @@ func (r *Renderer) renderImage(w util.BufWriter, source []byte, node ast.Node, e
 	}
 	n := node.(*ast.Image)
 	_, _ = w.WriteString("<img src=\"")
-	dest := util.URLEscape(n.Destination, true)
-	if r.Unsafe || !IsDangerousURL(dest) {
-		_, _ = w.Write(util.EscapeHTML(dest))
+	if r.Unsafe || !IsDangerousURL(n.Destination) {
+		_, _ = w.Write(util.EscapeHTML(util.URLEscape(n.Destination, true)))
 	}
 	_, _ = w.WriteString(`" alt="`)
 	r.renderTexts(w, source, n)
@@ -647,7 +639,7 @@ func (r *Renderer) renderRawHTML(
 	if r.Unsafe {
 		n := node.(*ast.RawHTML)
 		l := n.Segments.Len()
-		for i := range l {
+		for i := 0; i < l; i++ {
 			segment := n.Segments.At(i)
 			_, _ = w.Write(segment.Value(source))
 		}
@@ -810,7 +802,7 @@ func escapeRune(writer util.BufWriter, r rune) {
 func (d *defaultWriter) SecureWrite(writer util.BufWriter, source []byte) {
 	n := 0
 	l := len(source)
-	for i := range l {
+	for i := 0; i < l; i++ {
 		if source[i] == '\u0000' {
 			_, _ = writer.Write(source[i-n : i])
 			n = 0
@@ -827,7 +819,7 @@ func (d *defaultWriter) SecureWrite(writer util.BufWriter, source []byte) {
 func (d *defaultWriter) RawWrite(writer util.BufWriter, source []byte) {
 	n := 0
 	l := len(source)
-	for i := range l {
+	for i := 0; i < l; i++ {
 		v := util.EscapeHTMLByte(source[i])
 		if v != nil {
 			_, _ = writer.Write(source[i-n : i])
@@ -935,6 +927,7 @@ var bPng = []byte("png;")
 var bGif = []byte("gif;")
 var bJpeg = []byte("jpeg;")
 var bWebp = []byte("webp;")
+var bSvg = []byte("svg+xml;")
 var bJs = []byte("javascript:")
 var bVb = []byte("vbscript:")
 var bFile = []byte("file:")
@@ -950,7 +943,8 @@ func IsDangerousURL(url []byte) bool {
 	if hasPrefix(url, bDataImage) && len(url) >= 11 {
 		v := url[11:]
 		if hasPrefix(v, bPng) || hasPrefix(v, bGif) ||
-			hasPrefix(v, bJpeg) || hasPrefix(v, bWebp) {
+			hasPrefix(v, bJpeg) || hasPrefix(v, bWebp) ||
+			hasPrefix(v, bSvg) {
 			return false
 		}
 		return true

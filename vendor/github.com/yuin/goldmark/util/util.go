@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/url"
 	"regexp"
-	"slices"
 	"sort"
 	"strconv"
 	"unicode"
@@ -128,13 +127,13 @@ func IsBlank(bs []byte) bool {
 
 // VisualizeSpaces visualize invisible space characters.
 func VisualizeSpaces(bs []byte) []byte {
-	bs = bytes.ReplaceAll(bs, []byte(" "), []byte("[SPACE]"))
-	bs = bytes.ReplaceAll(bs, []byte("\t"), []byte("[TAB]"))
-	bs = bytes.ReplaceAll(bs, []byte("\n"), []byte("[NEWLINE]\n"))
-	bs = bytes.ReplaceAll(bs, []byte("\r"), []byte("[CR]"))
-	bs = bytes.ReplaceAll(bs, []byte("\v"), []byte("[VTAB]"))
-	bs = bytes.ReplaceAll(bs, []byte("\x00"), []byte("[NUL]"))
-	bs = bytes.ReplaceAll(bs, []byte("\ufffd"), []byte("[U+FFFD]"))
+	bs = bytes.Replace(bs, []byte(" "), []byte("[SPACE]"), -1)
+	bs = bytes.Replace(bs, []byte("\t"), []byte("[TAB]"), -1)
+	bs = bytes.Replace(bs, []byte("\n"), []byte("[NEWLINE]\n"), -1)
+	bs = bytes.Replace(bs, []byte("\r"), []byte("[CR]"), -1)
+	bs = bytes.Replace(bs, []byte("\v"), []byte("[VTAB]"), -1)
+	bs = bytes.Replace(bs, []byte("\x00"), []byte("[NUL]"), -1)
+	bs = bytes.Replace(bs, []byte("\ufffd"), []byte("[U+FFFD]"), -1)
 	return bs
 }
 
@@ -198,15 +197,13 @@ func DedentPosition(bs []byte, currentPos, width int) (pos, padding int) {
 	w := 0
 	l := len(bs)
 	i := 0
-loop:
 	for ; i < l; i++ {
-		switch bs[i] {
-		case '\t':
+		if bs[i] == '\t' {
 			w += TabWidth(currentPos + w)
-		case ' ':
+		} else if bs[i] == ' ' {
 			w++
-		default:
-			break loop
+		} else {
+			break
 		}
 	}
 	if w >= width {
@@ -228,15 +225,13 @@ func DedentPositionPadding(bs []byte, currentPos, paddingv, width int) (pos, pad
 	w := 0
 	i := 0
 	l := len(bs)
-loop:
 	for ; i < l; i++ {
-		switch bs[i] {
-		case '\t':
+		if bs[i] == '\t' {
 			w += TabWidth(currentPos + w)
-		case ' ':
+		} else if bs[i] == ' ' {
 			w++
-		default:
-			break loop
+		} else {
+			break
 		}
 	}
 	if w >= width {
@@ -247,16 +242,17 @@ loop:
 
 // IndentWidth calculate an indent width for the given line.
 func IndentWidth(bs []byte, currentPos int) (width, pos int) {
-	for i := range len(bs) {
-		switch bs[i] {
-		case ' ':
+	l := len(bs)
+	for i := 0; i < l; i++ {
+		b := bs[i]
+		if b == ' ' {
 			width++
 			pos++
-		case '\t':
+		} else if b == '\t' {
 			width += TabWidth(currentPos + width)
 			pos++
-		default:
-			return
+		} else {
+			break
 		}
 	}
 	return
@@ -319,13 +315,12 @@ func FindClosure(bs []byte, opener, closure byte, codeSpan, allowNesting bool) i
 				}
 			}
 		} else if (codeSpan && codeSpanOpener == 0) || !codeSpan {
-			switch c {
-			case closure:
+			if c == closure {
 				opened--
 				if opened == 0 {
 					return i
 				}
-			case opener:
+			} else if c == opener {
 				if !allowNesting {
 					return -1
 				}
@@ -345,7 +340,7 @@ func TrimLeft(source, b []byte) []byte {
 	for ; i < len(source); i++ {
 		c := source[i]
 		found := false
-		for j := range len(b) {
+		for j := 0; j < len(b); j++ {
 			if c == b[j] {
 				found = true
 				break
@@ -364,7 +359,7 @@ func TrimRight(source, b []byte) []byte {
 	for ; i >= 0; i-- {
 		c := source[i]
 		found := false
-		for j := range len(b) {
+		for j := 0; j < len(b); j++ {
 			if c == b[j] {
 				found = true
 				break
@@ -537,9 +532,8 @@ var htmlQuote = []byte("&quot;")
 var htmlAmp = []byte("&amp;")
 var htmlLess = []byte("&lt;")
 var htmlGreater = []byte("&gt;")
-var htmlNull = []byte("\ufffd")
 
-var htmlEscapeTable = [256]*[]byte{&htmlNull, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, &htmlQuote, nil, nil, nil, &htmlAmp, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, &htmlLess, nil, &htmlGreater, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil} //nolint:golint,lll
+var htmlEscapeTable = [256]*[]byte{nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, &htmlQuote, nil, nil, nil, &htmlAmp, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, &htmlLess, nil, &htmlGreater, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil} //nolint:golint,lll
 
 // EscapeHTMLByte returns HTML escaped bytes if the given byte should be escaped,
 // otherwise nil.
@@ -555,7 +549,7 @@ func EscapeHTMLByte(b byte) []byte {
 func EscapeHTML(v []byte) []byte {
 	cob := NewCopyOnWriteBuffer(v)
 	n := 0
-	for i := range len(v) {
+	for i := 0; i < len(v); i++ {
 		c := v[i]
 		escaped := htmlEscapeTable[c]
 		if escaped != nil {
@@ -871,7 +865,7 @@ type BufWriter interface {
 // A PrioritizedValue struct holds pair of an arbitrary value and a priority.
 type PrioritizedValue struct {
 	// Value is an arbitrary value that you want to prioritize.
-	Value any
+	Value interface{}
 	// Priority is a priority of the value.
 	Priority int
 }
@@ -887,7 +881,7 @@ func (s PrioritizedSlice) Sort() {
 }
 
 // Remove removes the given value from this slice.
-func (s PrioritizedSlice) Remove(v any) PrioritizedSlice {
+func (s PrioritizedSlice) Remove(v interface{}) PrioritizedSlice {
 	i := 0
 	found := false
 	for ; i < len(s); i++ {
@@ -899,11 +893,11 @@ func (s PrioritizedSlice) Remove(v any) PrioritizedSlice {
 	if !found {
 		return s
 	}
-	return slices.Delete(s, i, i+1)
+	return append(s[:i], s[i+1:]...)
 }
 
 // Prioritized returns a new PrioritizedValue.
-func Prioritized(v any, priority int) PrioritizedValue {
+func Prioritized(v interface{}, priority int) PrioritizedValue {
 	return PrioritizedValue{v, priority}
 }
 
@@ -958,7 +952,7 @@ func NewBytesFilterString(elements string) BytesFilter {
 		slots:     make([][][]byte, 64),
 	}
 	start := 0
-	for i := range len(elements) {
+	for i := 0; i < len(elements); i++ {
 		if elements[i] == ',' {
 			s.Add(StringToReadOnlyBytes(elements[start:i]))
 			start = i + 1
@@ -973,8 +967,11 @@ func NewBytesFilterString(elements string) BytesFilter {
 
 func (s *bytesFilter) Add(b []byte) {
 	l := len(b)
-	m := min(l, s.threshold)
-	for i := range m {
+	m := s.threshold
+	if l < s.threshold {
+		m = l
+	}
+	for i := 0; i < m; i++ {
 		s.chars[b[i]] |= 1 << uint8(i)
 	}
 	h := bytesHash(b) % uint64(len(s.slots))
@@ -1010,7 +1007,7 @@ func (s *bytesFilter) ExtendString(elements string) BytesFilter {
 		newFilter.slots[k] = v
 	}
 	start := 0
-	for i := range len(elements) {
+	for i := 0; i < len(elements); i++ {
 		if elements[i] == ',' {
 			newFilter.Add(StringToReadOnlyBytes(elements[start:i]))
 			start = i + 1
@@ -1024,8 +1021,11 @@ func (s *bytesFilter) ExtendString(elements string) BytesFilter {
 
 func (s *bytesFilter) Contains(b []byte) bool {
 	l := len(b)
-	m := min(l, s.threshold)
-	for i := range m {
+	m := s.threshold
+	if l < s.threshold {
+		m = l
+	}
+	for i := 0; i < m; i++ {
 		if (s.chars[b[i]] & (1 << uint8(i))) == 0 {
 			return false
 		}
