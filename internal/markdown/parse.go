@@ -2,12 +2,13 @@
 package markdown
 
 import (
+	"bytes"
 	"errors"
 	"os"
 	"path/filepath"
 
-	"github.com/charmbracelet/glamour"
-	"github.com/rivo/tview"
+	"github.com/yuin/goldmark/v2/parser"
+	"github.com/yuin/goldmark/v2/renderer/html"
 )
 
 // Valid ensures that 'path' is the path to an existing markdown file
@@ -30,11 +31,13 @@ func RenderText(path string) (string, error) {
 	if err != nil {
 		panic(err)
 	}
-	rawText := string(rawBytes)
-	ansiText, err := glamour.Render(rawText, "dark")
-	if err != nil {
-		return "", err
+	p := parser.New()
+	doc := p.Parse(rawBytes)
+
+	r := html.New()
+	var buf bytes.Buffer
+	if err := r.Render(&buf, rawBytes, doc); err != nil {
+		panic(err)
 	}
-	renderedText := tview.TranslateANSI(ansiText)
-	return renderedText, nil
+	return buf.String(), nil
 }

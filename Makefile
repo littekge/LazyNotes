@@ -21,7 +21,7 @@ run:
 # ---------- END DEV ----------
 
 # ---------- CHORES ----------
-# remove all buidl artifacts
+# remove all build artifacts
 clean:
 	rm -rf $(DIST)
 	rm -rf $(BIN)
