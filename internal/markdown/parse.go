@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"github.com/yuin/goldmark/v2/parser"
-	"github.com/yuin/goldmark/v2/renderer/html"
 )
 
 // Valid ensures that 'path' is the path to an existing markdown file
@@ -34,7 +33,7 @@ func RenderText(path string) (string, error) {
 	p := parser.New()
 	doc := p.Parse(rawBytes)
 
-	r := html.New()
+	r := New()
 	var buf bytes.Buffer
 	if err := r.Render(&buf, rawBytes, doc); err != nil {
 		panic(err)
